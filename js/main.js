@@ -553,24 +553,24 @@ require([
 					topTempLayer.add(minicompass);
 				} */
 
-				let length  = Math.hypot(
+				const length = Math.hypot(
 					linedata.p0[0] - point.longitude,
 					linedata.p0[1] - point.latitude,
 				);
 
-				let length_text = new Graphic(GraphicsLibrary.distanceLabel);
-				length_text.geometry.longitude = (linedata.p0[0] + point.longitude)/2;
-				length_text.geometry.latitude = (linedata.p0[1] + point.latitude)/2;
-				length_text.symbol.text = (length*140).toFixed(1)+" NM";
-				topTempLayer.add(length_text);
-
 				let bearing = getBearing(linedata.p0[1], linedata.p0[0], point.latitude, point.longitude);
 				bearing = Math.round(bearing * 10) / 10;
+
+				const length_text = new Graphic(GraphicsLibrary.distanceLabel);
+				length_text.geometry.longitude = (linedata.p0[0] + point.longitude)/2;
+				length_text.geometry.latitude = (linedata.p0[1] + point.latitude)/2;
+				length_text.symbol.text = `${(length*140).toFixed(1)} NM  ${bearing.toFixed(1)}°`;
+				
+				topTempLayer.add(length_text);
 
 				document.getElementById("arrow_needle").style.transform = 'rotate(' + bearing + 'deg)';
 				document.getElementById("arrow_needle").style.display = "block";
 			}
-
 		}
 
 		if(drawMode == DrawMode.Erase){
