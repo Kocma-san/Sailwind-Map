@@ -65,8 +65,9 @@ require([
 	"esri/layers/GeoJSONLayer",
 	"esri/Graphic",
 	"esri/layers/GraphicsLayer",
-	"esri/geometry/Circle"
-], (ArcGISMap, MapView, GeoJSONLayer, Graphic, GraphicsLayer, Circle) => {
+	"esri/geometry/Circle",
+	"esri/geometry/geometryEngine"
+], (ArcGISMap, MapView, GeoJSONLayer, Graphic, GraphicsLayer, Circle, geometryEngine) => {
 
 	(async()=>{
 
@@ -767,6 +768,8 @@ require([
 					targetObjects = mapObjects.lines;				
 					break;
 				case DrawMode.Circle:
+					// Some additional logic is needed here. Currently, the circle is deleted even if you click inside it, not just along its border.
+					// Since we are using ArcGIS v4.21, we don't have any convenient ways to solve this problem (proximityOperator with testPolygonInterior added in v4.31) 
 					targetObjects = mapObjects.circles;
 					break;
 				case DrawMode.Path:
@@ -1450,7 +1453,7 @@ require([
 	}
 
 	function redrawEdge(){
-		if(view.extent === undefined)
+		if(!view.extent)
 			return;
 
 		const xmin = view.extent.xmin;

@@ -209,7 +209,7 @@ class DarkThemeGraphics {
 		},
 		symbol: {
 			type: "simple-line",  // autocasts as SimpleLineSymbol()
-			color: [255, 255, 255, 0.4],
+			color: [255, 255, 255, 0.7],
 			style: 'dash',
 			width: 1
 		}
