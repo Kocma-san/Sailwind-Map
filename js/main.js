@@ -828,16 +828,19 @@ require([
 					const line = new Graphic(GraphicsLibrary.compassLine);
 					line.geometry.paths = [circledata.center, circledata.endpoint];
 					line.attributes = {id: circledata.id, type: circledata.type}
-
-					const length = getDistance(circledata.center, circledata.endpoint)		
-					const length_text = new Graphic(GraphicsLibrary.distanceLabel);
-					length_text.geometry.longitude = (circledata.center[0] + circledata.endpoint[0])/2;
-					length_text.geometry.latitude = (circledata.center[1] + circledata.endpoint[1])/2;
-					length_text.symbol.text = `${(length*140).toFixed(1)} NM`;
-
+					
 					renderLayer.add(circle);
 					renderLayer.add(line);
-					renderLayer.add(length_text);
+
+					if(showDistances){
+						const length = getDistance(circledata.center, circledata.endpoint)		
+						const length_text = new Graphic(GraphicsLibrary.distanceLabel);
+						length_text.geometry.longitude = (circledata.center[0] + circledata.endpoint[0])/2;
+						length_text.geometry.latitude = (circledata.center[1] + circledata.endpoint[1])/2;
+						length_text.symbol.text = `${(length*140).toFixed(1)} NM`;
+						
+						renderLayer.add(length_text);
+					}
 				}
 			}
 		}
