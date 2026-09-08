@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/complexity/useArrowFunction: <explanation> */
 var extents_checksum = 0;
 
 var mouseGrabMoving = undefined;
@@ -66,10 +65,8 @@ require([
 	"esri/layers/GeoJSONLayer",
 	"esri/Graphic",
 	"esri/layers/GraphicsLayer",
-	"esri/symbols/LineSymbolMarker",
-	"esri/webmap/background/ColorBackground",
 	"esri/geometry/Circle"
-], (ArcGISMap, MapView, GeoJSONLayer, Graphic, GraphicsLayer, LineSymbolMarker, ColorBackground, Circle) => {
+], (ArcGISMap, MapView, GeoJSONLayer, Graphic, GraphicsLayer, Circle) => {
 
 	(async()=>{
 
@@ -114,7 +111,7 @@ require([
 		type: "application/json"
 	});
 
-	let borderRenderer = {
+	const borderRenderer = {
 		type: "simple",
 		symbol: {
 			type: "simple-line",  // autocasts as SimpleLineSymbol()
@@ -124,7 +121,7 @@ require([
 		}
 	};
 
-	let fGridRenderer = {
+	const fGridRenderer = {
 		type: "simple",
 		symbol: {
 			type: "simple-line",  // autocasts as SimpleLineSymbol()
@@ -134,7 +131,7 @@ require([
 		}
 	};
 
-	let ufGridRenderer = {
+	const ufGridRenderer = {
 		type: "simple",
 		symbol: {
 			type: "simple-line",  // autocasts as SimpleLineSymbol()
@@ -144,7 +141,7 @@ require([
 		}
 	};
 
-	let routeRenderer = {
+	const routeRenderer = {
 		type: "unique-value",  // autocasts as new UniqueValueRenderer()
 		field: "Type",
 		defaultSymbol: { type: "simple-line" },  // autocasts as new SimpleLineSymbol()
@@ -181,7 +178,7 @@ require([
 		visualVariables: []
 	};
 
-	let windRenderer = {
+	const windRenderer = {
 		type: "unique-value",  // autocasts as new UniqueValueRenderer()
 		field: "Region",
 		defaultSymbol: { type: "simple-line" },  // autocasts as new SimpleLineSymbol()
@@ -228,7 +225,7 @@ require([
 		visualVariables: []
 	};
 
-	let gridRenderer = {
+	const gridRenderer = {
 		type: "simple",
 		symbol: {
 			type: "simple-line",  // autocasts as SimpleLineSymbol()
@@ -238,7 +235,7 @@ require([
 		}
 	};
 
-	let renderer = {
+	const renderer = {
 		type: "unique-value",  // autocasts as new UniqueValueRenderer()
 		field: "Region",
 		defaultSymbol: { type: "simple-fill" },  // autocasts as new SimpleFillSymbol()
@@ -321,7 +318,7 @@ require([
 		}]
 	};
 
-	let bigLabelsRenderer = {
+	const bigLabelsRenderer = {
 		type: "simple",  // autocasts as new SimpleRenderer()
 		symbol: {
 			type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
@@ -330,7 +327,7 @@ require([
 		}
 	};
 
-	let bigLabelClass = {
+	const bigLabelClass = {
 		symbol: {
 			type: "text",
 			color: "#706860",
@@ -347,7 +344,7 @@ require([
 
 	};
 
-	let labelClass = {
+	const labelClass = {
 		symbol: {
 			type: "text",
 			color: "black",
@@ -521,9 +518,9 @@ require([
 	map.add(topTempLayer);
 
 
-	view.on('pointer-move', function (event) {
+	view.on('pointer-move', (event) => {
 
-		let point = view.toMap({ x: event.x, y: event.y });
+		const point = view.toMap({ x: event.x, y: event.y });
 
 		document.getElementById("yposition").innerHTML = String(Math.round(point.latitude * 100) / 100) + "°";
 		document.getElementById("xposition").innerHTML = String(Math.round(point.longitude * 100) / 100) + "°";
@@ -580,7 +577,7 @@ require([
 			}							
 		}
 
-		if(mouseGrabMoving != undefined){
+		if(mouseGrabMoving !== undefined){
 			mouseGrabMoving.array[mouseGrabMoving.index].pos = [point.longitude, point.latitude];
 			redrawMap();
 
@@ -591,8 +588,8 @@ require([
 
 	view.on("immediate-click", async (event) => {
 
-		let lat = event.mapPoint.y;
-		let long = event.mapPoint.x;
+		const lat = event.mapPoint.y;
+		const long = event.mapPoint.x;
 
 		if(drawMode !== DrawMode.Erase && !drawMode.includes("line") && drawMode !== DrawMode.Circle){
 			const result = await findObjectAt(event);
@@ -602,12 +599,12 @@ require([
 			}
 		}
 		
-		if(menuPoint != undefined){
+		if(menuPoint !== undefined){
 			closeDetails();
 			return;
 		}
 
-		if(drawMode == DrawMode.Path){
+		if(drawMode === DrawMode.Path){
 
 			// do we insert the point between other two points?
 			let inserted = false;
@@ -647,7 +644,7 @@ require([
 				});	
 			}
 		}
-		else if(drawMode == DrawMode.Point){
+		else if(drawMode === DrawMode.Point){
 			mapObjects.points.push({
 				id: mapObjects.points.length,
 				type: drawMode,
@@ -659,7 +656,7 @@ require([
 				winddir: "NE",
 			});	
 		}
-		else if(drawMode == DrawMode.Goal){
+		else if(drawMode === DrawMode.Goal){
 			mapObjects.goals = [{
 				id: mapObjects.goals.length,
 				type: drawMode,
@@ -683,7 +680,7 @@ require([
 				}
 			}
 
-			if(unfinished == undefined){
+			if(unfinished === undefined){
 				mapObjects.lines.push({
 					id: mapObjects.lines.length,
 					type: drawMode,
@@ -724,7 +721,7 @@ require([
 	});
 
 	view.on("drag", (event) => {
-		if(mouseGrabMoving != undefined){
+		if(mouseGrabMoving !== undefined){
 			event.stopPropagation();
 		}
 		positionData.center = view.center;
@@ -732,23 +729,22 @@ require([
 		localStorage.setItem("positionData", JSON.stringify(positionData));
 	});
 
-	view.on("hold", function (event) {
-
-		if(drawMode == DrawMode.Erase){
+	view.on("hold", (event) => {
+		if(drawMode === DrawMode.Erase){
 			return;
 		}
 
-		let lat = event.mapPoint.y;
-		let long = event.mapPoint.x;
+		const lat = event.mapPoint.y;
+		const long = event.mapPoint.x;
 
-		let result = findObjectAt(long, lat);
-		if(result != undefined && result.array != mapObjects.lines){
+		const result = findObjectAt(long, lat);
+		if(result !== undefined && result.array !== mapObjects.lines){
 			mouseGrabMoving = result;
 			document.getElementById("viewDiv").style.cursor = "move";
 		}
 	});
 
-	view.on("pointer-up", function (event) {
+	view.on("pointer-up", (event) => {
 		if(mouseGrabMoving != undefined){
 			mouseGrabMoving = undefined;
 			document.getElementById("viewDiv").style.cursor = "crosshair";
@@ -845,10 +841,10 @@ require([
 
 		//draw route line
 		if(mapObjects.path.length > 1){
-			let linedata = [];
-			mapObjects.path.forEach(e => linedata.push(e.pos));
+			const linedata = [];
+			mapObjects.path.forEach((e) => {linedata.push(e.pos)});
 
-			let line = new Graphic(GraphicsLibrary.orangeLine);
+			const line = new Graphic(GraphicsLibrary.orangeLine);
 			line.geometry.paths = linedata;
 			renderLayer.add(line);
 		}
@@ -856,14 +852,14 @@ require([
 		//draw route line distances
 		if(showDistances && mapObjects.path.length > 1){
 			for (i = 0; i < mapObjects.path.length-1; i++) {
-				let p0 = mapObjects.path[i].pos;
-				let p1 = mapObjects.path[i+1].pos;
-				let length  = Math.hypot(
+				const p0 = mapObjects.path[i].pos;
+				const p1 = mapObjects.path[i+1].pos;
+				const length  = Math.hypot(
 					p0[0] - p1[0],
 					p0[1] - p1[1],
 				);
 	
-				let length_text = new Graphic(GraphicsLibrary.distanceLabel);
+				const length_text = new Graphic(GraphicsLibrary.distanceLabel);
 				length_text.geometry.longitude = (p0[0] + p1[0])/2;
 				length_text.geometry.latitude = (p0[1] + p1[1])/2;
 				length_text.symbol.text = (length*140).toFixed(1)+" NM";
@@ -872,7 +868,7 @@ require([
 		}
 		// draw goal leg
 		if(mapObjects.path.length > 0 && mapObjects.goals.length > 0){
-			let line = new Graphic(GraphicsLibrary.dottedOrangeLine);
+			const line = new Graphic(GraphicsLibrary.dottedOrangeLine);
 			line.geometry.paths = [
 				mapObjects.path[mapObjects.path.length-1].pos,
 				mapObjects.goals[0].pos
@@ -889,7 +885,7 @@ require([
 				point.attributes = {id: pointdata.id, type: pointdata.type}
 				renderLayer.add(point);
 
-				if(pointdata.description != "")
+				if(pointdata.description !== "")
 				{
 					const description_text = new Graphic(GraphicsLibrary.distanceLabel);
 					description_text.geometry.longitude =pointdata.pos[0];
@@ -942,7 +938,7 @@ require([
 		let totalDist = 0;
 		if (mapObjects.path.length > 1) {
 			for (i = 0; i <  mapObjects.path.length; i++) {
-				if (i !=  mapObjects.path.length - 1) {
+				if (i !==  mapObjects.path.length - 1) {
 					totalDist += getDistanceFromLatLonInNm(
 						mapObjects.path[i].pos[1],
 						mapObjects.path[i].pos[0], 
@@ -956,11 +952,10 @@ require([
 
 		// Heading and distance to target
 		if(mapObjects.path.length > 0 && mapObjects.goals.length > 0){
+			const pos = mapObjects.path[mapObjects.path.length-1].pos;
+			const tgt = mapObjects.goals[0].pos;
 
-			let pos = mapObjects.path[mapObjects.path.length-1].pos;
-			let tgt = mapObjects.goals[0].pos;
-
-			let dist = getDistanceFromLatLonInNm(pos[1], pos[0], tgt[1], tgt[0])
+			const dist = getDistanceFromLatLonInNm(pos[1], pos[0], tgt[1], tgt[0])
 			
 			let bearing = getBearing(pos[1], pos[0], tgt[1], tgt[0]);
 			bearing = Math.round(bearing * 10) / 10;
@@ -972,9 +967,8 @@ require([
 			setArrow(bearing);
 		}
 		else if(mapObjects.path.length > 1){
-
-			let pos = mapObjects.path[mapObjects.path.length-2].pos;
-			let tgt = mapObjects.path[mapObjects.path.length-1].pos;
+			const pos = mapObjects.path[mapObjects.path.length-2].pos;
+			const tgt = mapObjects.path[mapObjects.path.length-1].pos;
 			
 			let bearing = getBearing(pos[1], pos[0], tgt[1], tgt[0]);
 			bearing = Math.round(bearing * 10) / 10;
@@ -1039,7 +1033,7 @@ require([
 	});
 
 	//Info Menu
-	document.getElementById('clearcoords').onclick = function () {
+	document.getElementById('clearcoords').onclick = () => {
 		mapObjects = {
 			lines: [],
 			path: [],
@@ -1051,15 +1045,15 @@ require([
 		localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
 	}
 
-	document.getElementById('export_map').onclick = async function () {
+	document.getElementById('export_map').onclick = async () => {
 		const map_name = await prompt('What manner of chart be this?');
 
-		if(map_name == "" || map_name == null)
+		if(map_name === "" || map_name == null)
 			return;
 
 		const url = window.URL.createObjectURL(new Blob([JSON.stringify(mapObjects)], {type: "octet/stream"}));
 
-		let a = document.createElement("a");
+		const a = document.createElement("a");
 		a.href = url
 		a.download = map_name+'.json';
 		a.click();
@@ -1067,19 +1061,19 @@ require([
 		window.URL.revokeObjectURL(url);
 	}
 
-	document.getElementById('import_map').onclick = function() {
+	document.getElementById('import_map').onclick = () => {
 		// causes file input to prompt for file
 		document.getElementById('map_file').click();
 		// if user did upload file, goes to 'map_file'.onchange (below)
 	}
 
-	document.getElementById('map_file').onchange = function() {
-		let files = document.getElementById('map_file').files;
+	document.getElementById('map_file').onchange = () => {
+		const files = document.getElementById('map_file').files;
 		if (files.length <= 0) {
 		    return false;
 		} 
-		let fr = new FileReader();
-		fr.onload = function(e) { 
+		const fr = new FileReader();
+		fr.onload = (e) => { 
 			mapObjects = JSON.parse(e.target.result);
 			localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
 			redrawMap();
@@ -1089,7 +1083,7 @@ require([
 	}
 
 	//Details menu
-	document.getElementById('details_description').onchange = function () {
+	document.getElementById('details_description').onchange = () => {
 		if(menuPoint === undefined)
 			return;
 
@@ -1099,7 +1093,7 @@ require([
 		redrawMap();
 	}
 
-	document.getElementById('details_lattitude').onchange = function () {
+	document.getElementById('details_lattitude').onchange = () => {
 		if(menuPoint === undefined)
 			return;
 
@@ -1109,7 +1103,7 @@ require([
 		redrawMap();
 	}
 
-	document.getElementById('details_longitude').onchange = function () {
+	document.getElementById('details_longitude').onchange = () => {
 		if(menuPoint === undefined)
 			return;
 
@@ -1119,7 +1113,7 @@ require([
 		redrawMap();
 	}
 
-	document.getElementById('details_colour').onchange = function () {
+	document.getElementById('details_colour').onchange = () => {
 		if(menuPoint === undefined)
 			return;
 
@@ -1129,7 +1123,7 @@ require([
 		redrawMap();
 	}
 
-	document.getElementById('details_day').onchange = function () {
+	document.getElementById('details_day').onchange = () => {
 		if(menuPoint === undefined)
 			return;
 
@@ -1139,7 +1133,7 @@ require([
 		redrawMap();
 	}
 
-	document.getElementById('details_time').onchange = function () {
+	document.getElementById('details_time').onchange = () => {
 		if(menuPoint === undefined)
 			return;
 
@@ -1149,7 +1143,7 @@ require([
 		redrawMap();
 	}
 
-	document.getElementById('details_winddir').onchange = function () {
+	document.getElementById('details_winddir').onchange = () => {
 		if(menuPoint === undefined)
 			return;
 
@@ -1160,15 +1154,15 @@ require([
 	}
 
 	// dynamic degree number renderer
-	view.watch('extent', function(newextent, oldextent) {
-		let xmin = view.extent.xmin;
-		let xmax = view.extent.xmax;
-		let ymin = view.extent.ymin;
-		let ymax = view.extent.ymax;
+	view.watch('extent', (newextent, oldextent) => {
+		const xmin = view.extent.xmin;
+		const xmax = view.extent.xmax;
+		const ymin = view.extent.ymin;
+		const ymax = view.extent.ymax;
 
-		let checksum = xmin+xmax+ymin+ymax;
+		const checksum = xmin+xmax+ymin+ymax;
 
-		if(checksum == extents_checksum)
+		if(checksum === extents_checksum)
 			return;
 
 		extents_checksum = checksum;
@@ -1176,15 +1170,15 @@ require([
 	});
 
 	// dynamic degree number renderer
-	view.watch('stationary', function(newextent, oldextent) {
+	view.watch('stationary', (newextent, oldextent) => {
 
 		redrawEdge();
 
 	});
 
 	document.getElementById('coordsfile').addEventListener('change', (event) => {
-		let file = event.target.files[0];
-		let reader = new FileReader();
+		const file = event.target.files[0];
+		const reader = new FileReader();
 		reader.readAsText(file);
 		reader.addEventListener('load', (event) => {
 
@@ -1261,7 +1255,7 @@ require([
 	}
 
 	if(localStorage.hasOwnProperty("islands_hidden")){
-		let hidden = localStorage.getItem("islands_hidden") === 'true';
+		const hidden = localStorage.getItem("islands_hidden") === 'true';
 		secretlayer.visible = showSecrets && !hidden;
 		layer.visible = !hidden;
 		biglabel.visible = !hidden;
@@ -1456,15 +1450,15 @@ require([
 	}
 
 	function redrawEdge(){
-		if(view.extent == undefined)
+		if(view.extent === undefined)
 			return;
 
-		let xmin = view.extent.xmin;
-		let xmax = view.extent.xmax;
-		let ymin = view.extent.ymin;
-		let ymax = view.extent.ymax;
-		let width_offset = view.extent.width * 0.03;
-		let height_offset = view.extent.height * 0.04;
+		const xmin = view.extent.xmin;
+		const xmax = view.extent.xmax;
+		const ymin = view.extent.ymin;
+		const ymax = view.extent.ymax;
+		const width_offset = view.extent.width * 0.03;
+		const height_offset = view.extent.height * 0.04;
 
 		//would be better to just reuse objects, but there's no way to iterate over existing ones
 		edgeLayer.removeAll();
@@ -1504,7 +1498,7 @@ require([
 		}
 
 		for(let i = lat_min; i <= lat_max; i+=step){
-			let testpoint = new Graphic(GraphicsLibrary.degreeSideLabel);
+			const testpoint = new Graphic(GraphicsLibrary.degreeSideLabel);
 			testpoint.geometry.latitude = i;
 			testpoint.geometry.longitude = xmin + width_offset;
 			testpoint.symbol.text = i.toFixed(decimals)+"°";
@@ -1512,7 +1506,7 @@ require([
 		}
 
 		for(let i = long_min; i <= long_max; i+=step){
-			let testpoint = new Graphic(GraphicsLibrary.degreeTopLabel);
+			const testpoint = new Graphic(GraphicsLibrary.degreeTopLabel);
 			testpoint.geometry.latitude = ymax - height_offset;
 			testpoint.geometry.longitude = i;
 			testpoint.symbol.text = i.toFixed(decimals)+"°";
@@ -1532,20 +1526,17 @@ function setArrow(degree) {
 };
 
 function pathToData(){
-	
-
 	let outstring = "					[\n";
 
 	for(let i = 0; i < mapObjects.path.length; i++){
-
-		let lat = parseFloat(mapObjects.path[i].pos[1]).toFixed(14);
-		let long = parseFloat(mapObjects.path[i].pos[0]).toFixed(14);
+		const lat = parseFloat(mapObjects.path[i].pos[1]).toFixed(14);
+		const long = parseFloat(mapObjects.path[i].pos[0]).toFixed(14);
 
 		outstring += "						[\n";
 		outstring += "							"+long+",\n";
 		outstring += "							"+lat+"\n";
 
-		if(i == mapObjects.path.length-1)
+		if(i === mapObjects.path.length-1)
 			outstring += "						]\n";
 		else
 			outstring += "						],\n";
