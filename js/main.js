@@ -493,7 +493,7 @@ require([
 	view.ui._removeComponents(["attribution"]);
 	view.scale = 10000000;
 
-	if(localStorage.hasOwnProperty("positionData")){
+	if(Object.hasOwn(localStorage, "positionData")){
 		positionData = JSON.parse(localStorage.getItem("positionData"));
 
 		view.scale = positionData.scale;
@@ -1225,36 +1225,36 @@ require([
 		});
 	});
 
-	if(localStorage.hasOwnProperty("distances_visible")){
+	if(Object.hasOwn(localStorage, "distances_visible")){
 		showDistances = localStorage.getItem("distances_visible") === 'true';
 		document.getElementById("distancescheck").checked = showDistances;
 		redrawMap();
 	}
 
-	if(localStorage.hasOwnProperty("border_visible")){
+	if(Object.hasOwn(localStorage, "border_visible")){
 		borderLayer.visible = localStorage.getItem("border_visible") === 'true';
 		document.getElementById("bordercheck").checked = borderLayer.visible;
 	}
 
-	if(localStorage.hasOwnProperty("secrets_visible")){
+	if(Object.hasOwn(localStorage, "secrets_visible")){
 		showSecrets = localStorage.getItem("secrets_visible") === 'true';
 		secretlayer.visible = showSecrets && layer.visible;
 		secretRoute.visible = showSecrets && route.visible;
 		document.getElementById("secretcheck").checked = showSecrets;
 	}
 
-	if(localStorage.hasOwnProperty("route_visible")){
+	if(Object.hasOwn(localStorage, "route_visible")){
 		route.visible = localStorage.getItem("route_visible") === 'true';
 		secretRoute.visible = showSecrets && route.visible;
 		document.getElementById("routescheck").checked = route.visible;
 	}
 
-	if(localStorage.hasOwnProperty("wind_visible")){
+	if(Object.hasOwn(localStorage, "wind_visible")){
 		wind.visible = localStorage.getItem("wind_visible") === 'true';
 		document.getElementById("windscheck").checked = wind.visible;
 	}
 
-	if(localStorage.hasOwnProperty("islands_hidden")){
+	if(Object.hasOwn(localStorage, "islands_hidden")){
 		const hidden = localStorage.getItem("islands_hidden") === 'true';
 		secretlayer.visible = showSecrets && !hidden;
 		layer.visible = !hidden;
@@ -1262,7 +1262,7 @@ require([
 		document.getElementById("hideislandscheck").checked = hidden;
 	}
 
-	if(localStorage.hasOwnProperty("dark_mode")){
+	if(Object.hasOwn(localStorage, "dark_mode")){
 		dark_mode = localStorage.getItem("dark_mode") === "true"
 		changeTheme(dark_mode)
 
@@ -1271,12 +1271,12 @@ require([
 		}
 	}
 
-	if(!localStorage.hasOwnProperty("modal_tutorial")){
+	if(!Object.hasOwn(localStorage, "modal_tutorial")){
 		Modal.open('modal_tutorial');
 		localStorage.setItem("modal_tutorial", true);
 	}
 
-	if(localStorage.hasOwnProperty("quicksave_data")) {
+	if(Object.hasOwn(localStorage, "quicksave_data")) {
 		mapObjects = JSON.parse(localStorage.getItem("quicksave_data"));	
 		redrawMap();
 	}

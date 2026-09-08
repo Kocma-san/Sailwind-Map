@@ -1,5 +1,5 @@
 //cursor indicator lines
-window.onmousemove = function (e) {
+window.onmousemove = (e) => {
 	document.getElementById("horizCursorline").style.top = e.clientY+"px";
 	document.getElementById("vertCursorline").style.left = e.clientX+"px";
 };

@@ -13,7 +13,7 @@ class Modal{
 	}
 }
 
-window.addEventListener('click', function(event) {
+window.addEventListener('click', (event) => {
 	if(event.target.classList.contains("modal")) {
 		event.target.style.display = "none";
 		modals_open--;
