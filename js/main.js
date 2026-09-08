@@ -1039,6 +1039,7 @@ require([
 	document.getElementById('clearcoords').onclick = () => {
 		mapObjects = {
 			lines: [],
+			circles: [],
 			path: [],
 			points: [],
 			goals: []
