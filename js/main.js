@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/useArrowFunction: <explanation> */
 var extents_checksum = 0;
 
 var mouseGrabMoving = undefined;
@@ -8,6 +9,7 @@ const DrawMode ={
 	BlackLine: "blackline",
 	GrayLine: "grayline",
 	RedLine: "redline",
+	Circle: "circle",
 	Path: "path",
 	Point: "point",
 	Goal: "goal",
@@ -20,6 +22,7 @@ let dark_mode = false;
 
 var mapObjects = {
 	lines: [],
+	circles: [],
 	path: [],
 	points: [],
 	goals: []
@@ -64,8 +67,9 @@ require([
 	"esri/Graphic",
 	"esri/layers/GraphicsLayer",
 	"esri/symbols/LineSymbolMarker",
-	"esri/webmap/background/ColorBackground"
-], function (ArcGISMap, MapView, GeoJSONLayer, Graphic, GraphicsLayer, LineSymbolMarker, ColorBackground) {
+	"esri/webmap/background/ColorBackground",
+	"esri/geometry/Circle"
+], (ArcGISMap, MapView, GeoJSONLayer, Graphic, GraphicsLayer, LineSymbolMarker, ColorBackground, Circle) => {
 
 	(async()=>{
 
@@ -362,6 +366,19 @@ require([
 
 	};
 
+	const circleFactory = ({center, radius}) => {
+		const circleGeometry = new Circle({
+			center: center,
+			radius: radius,
+			radiusUnit: "kilometers",
+			numberOfPoints: 160
+		})
+		return {
+			geometry: circleGeometry,
+			symbol: GraphicsLibrary.compassLine.symbol
+		}
+	}
+
 	
 	const borderLayer = new GeoJSONLayer({
 		url: URL.createObjectURL(borderBlob),
@@ -515,48 +532,14 @@ require([
 		tempLayer.removeAll();
 		document.getElementById("arrow_needle").style.display = "none";
 
-		//draw temp line
-		for (let i = mapObjects.lines.length-1; i >= 0; i--) {
-			let linedata = mapObjects.lines[i];
-
-			if(linedata.p1 == undefined){
-				let line = new Graphic(GraphicsLibrary.lines[linedata.type]);
+		//draw temp lines
+		for (const linedata of mapObjects.lines) {
+			if(linedata.p1 === undefined){
+				const line = new Graphic(GraphicsLibrary.lines[linedata.type]);
 				line.geometry.paths = [linedata.p0, [point.longitude, point.latitude]];
 				tempLayer.add(line);
 
-/* 				let start_bearing = getBearing(point.latitude, point.longitude, linedata.p0[1], linedata.p0[0]);
-				let end_bearing = getBearing(linedata.p0[1], linedata.p0[0], point.latitude, point.longitude);
-
-				let start_text = new Graphic(GraphicsLibrary.headingLabel);
-				start_text.geometry.longitude = linedata.p0[0];
-				start_text.geometry.latitude = linedata.p0[1];
-				start_text.symbol.text = getCompassStringFromDeg(start_bearing);
-				topTempLayer.add(start_text);
-
-				let end_text = new Graphic(GraphicsLibrary.headingLabel);
-				end_text.geometry.longitude = point.longitude;
-				end_text.geometry.latitude = point.latitude;
-				end_text.symbol.text = getCompassStringFromDeg(end_bearing);
-				topTempLayer.add(end_text);
-
-				let length  = Math.hypot(
-					linedata.p0[0] - point.longitude,
-					linedata.p0[1] - point.latitude,
-				);
-
-				let degreesPerPixel = view.extent.width/window.screen.width;
-
-				if(length/degreesPerPixel > 140){
-					let minicompass = new Graphic(GraphicsLibrary.minicompass);
-					minicompass.geometry.longitude = (linedata.p0[0] + point.longitude)/2;
-					minicompass.geometry.latitude = (linedata.p0[1] + point.latitude)/2;
-					topTempLayer.add(minicompass);
-				} */
-
-				const length = Math.hypot(
-					linedata.p0[0] - point.longitude,
-					linedata.p0[1] - point.latitude,
-				);
+				const length = getDistance(linedata.p0, [point.longitude, point.latitude]);
 
 				let bearing = getBearing(linedata.p0[1], linedata.p0[0], point.latitude, point.longitude);
 				bearing = Math.round(bearing * 10) / 10;
@@ -564,7 +547,7 @@ require([
 				const length_text = new Graphic(GraphicsLibrary.distanceLabel);
 				length_text.geometry.longitude = (linedata.p0[0] + point.longitude)/2;
 				length_text.geometry.latitude = (linedata.p0[1] + point.latitude)/2;
-				length_text.symbol.text = `${(length*140).toFixed(1)} NM  ${bearing.toFixed(1)}°`;
+				length_text.symbol.text = `${(length*140).toFixed(1)} NM  ${bearing}°`;
 				
 				topTempLayer.add(length_text);
 
@@ -572,22 +555,30 @@ require([
 				document.getElementById("arrow_needle").style.display = "block";
 			}
 		}
+		// temp circles
+		for (const circledata of mapObjects.circles){	
+			if (circledata.radius === undefined) {
+				const length = getDistance(circledata.center, [point.longitude, point.latitude]);
 
-		if(drawMode == DrawMode.Erase){
-			let result = findObjectAt(point.longitude, point.latitude);
-			if(result != undefined){
-				let offset = (view.extent.width/window.screen.width)*11;
-				let eraser = new Graphic(GraphicsLibrary.eraser);
-				eraser.geometry.longitude = point.longitude + offset;
-				eraser.geometry.latitude = point.latitude + offset;
-				topTempLayer.add(eraser);
-				document.getElementById("viewDiv").style.cursor = "none";
-			}
-			else{
-				document.getElementById("viewDiv").style.cursor = "crosshair";
-			}
+				const circle = new Graphic(circleFactory({
+					center: circledata.center,
+				 	radius: approximateDistanceToKilometers(length)
+				}));
+
+				const line = new Graphic(GraphicsLibrary.compassLine);
+				line.geometry.paths = [circledata.center, [point.longitude, point.latitude]];
+
+				tempLayer.add(circle);	
+				tempLayer.add(line);	
+
+				const length_text = new Graphic(GraphicsLibrary.distanceLabel);
+				length_text.geometry.longitude = (circledata.center[0] + point.longitude)/2;
+				length_text.geometry.latitude = (circledata.center[1] + point.latitude)/2;
+				length_text.symbol.text = `${(length*140).toFixed(1)} NM`;
+				
+				topTempLayer.add(length_text);
+			}							
 		}
-
 
 		if(mouseGrabMoving != undefined){
 			mouseGrabMoving.array[mouseGrabMoving.index].pos = [point.longitude, point.latitude];
@@ -598,14 +589,14 @@ require([
 		}
 	});
 
-	view.on("immediate-click", function (event) {
+	view.on("immediate-click", async (event) => {
 
 		let lat = event.mapPoint.y;
 		let long = event.mapPoint.x;
 
-		if(drawMode != DrawMode.Erase && !drawMode.includes("line")){
-			let result = findObjectAt(long, lat);
-			if(result != undefined && (result.array == mapObjects.path || result.array == mapObjects.points)){
+		if(drawMode !== DrawMode.Erase && !drawMode.includes("line") && drawMode !== DrawMode.Circle){
+			const result = await findObjectAt(event);
+			if(result !== undefined && (result.array === mapObjects.path || result.array === mapObjects.points)){
 				openDetails(result);
 				return;
 			}
@@ -629,6 +620,8 @@ require([
 
 				if(distancePointToLineSegment([long, lat], p0, p1) < degreesPerPixel * 7){
 					mapObjects.path.splice(i+1, 0, {
+						id: mapObjects.path.length,
+						type: drawMode,
 						description: "",
 						pos: [long, lat],
 						colour: "orangepoint",
@@ -643,6 +636,8 @@ require([
 
 			if(!inserted){
 				mapObjects.path.push({
+					id: mapObjects.path.length,
+					type: drawMode,
 					description: "",
 					pos: [long, lat],
 					colour: "orangepoint",
@@ -654,6 +649,8 @@ require([
 		}
 		else if(drawMode == DrawMode.Point){
 			mapObjects.points.push({
+				id: mapObjects.points.length,
+				type: drawMode,
 				description: "Click to Rename",
 				pos: [long, lat],
 				colour: "bluepoint",
@@ -664,13 +661,17 @@ require([
 		}
 		else if(drawMode == DrawMode.Goal){
 			mapObjects.goals = [{
+				id: mapObjects.goals.length,
+				type: drawMode,
 				pos: [long, lat]
 			}];
 		}
-		else if(drawMode == DrawMode.Erase){
-			let result = findObjectAt(long, lat);
-			if(result != undefined){
-				result.array.splice(result.index, 1);
+		else if(drawMode === DrawMode.Erase){
+			const result = await findObjectAt(event);
+
+			if(result !== undefined){
+				const index = result.array.findIndex(object => object.id === result.id)
+				result.array.splice(index, 1)
 			}
 		}
 		else if(drawMode.includes("line")){
@@ -684,12 +685,35 @@ require([
 
 			if(unfinished == undefined){
 				mapObjects.lines.push({
+					id: mapObjects.lines.length,
 					type: drawMode,
 					p0: [long, lat],
 					p1: undefined
 				});
 			}else{
 				unfinished.p1 = [long, lat];
+			}
+		}
+		else if(drawMode === DrawMode.Circle){
+			let unfinished;
+			for (const circledata of mapObjects.circles) {
+				if(circledata.radius === undefined){
+					unfinished = circledata;
+					break;
+				}
+			}
+
+			if(unfinished === undefined){
+				mapObjects.circles.push({
+					id: mapObjects.circles.length,
+					type: drawMode,
+					center: [long, lat],
+					radius: undefined,
+					endpoint: undefined
+				});
+			}else{
+				unfinished.radius = approximateDistanceToKilometers(getDistance(unfinished.center, [long, lat]))
+				unfinished.endpoint = [long, lat]
 			}
 		}
 
@@ -731,69 +755,47 @@ require([
 		}
 	});
 
-	function findObjectAt(long, lat){
-		let degreesPerPixel = view.extent.width/window.screen.width;
+	async function findObjectAt(event){
+		const response = await view.hitTest(event);
+		const results = response.results.filter((object) => {
+			return object.graphic.layer === renderLayer
+		})
 
-		//check route
-		for (let i = 0; i < mapObjects.path.length; i++) {
-
-			let pLong = mapObjects.path[i].pos[0];
-			let pLat = mapObjects.path[i].pos[1];
-
-			if(Math.hypot(long - pLong,lat - pLat) < degreesPerPixel * 15){
-				return {
-					array: mapObjects.path,
-					index: i
-				}
+		for (const result of results){
+			const graphic = result.graphic;
+			let targetObjects;
+			switch (graphic.attributes?.type){
+				case DrawMode.BlackLine:
+				case DrawMode.GrayLine:
+				case DrawMode.RedLine:
+					targetObjects = mapObjects.lines;				
+					break;
+				case DrawMode.Circle:
+					targetObjects = mapObjects.circles;
+					break;
+				case DrawMode.Path:
+					targetObjects = mapObjects.path;	
+					break;
+				case DrawMode.Point:
+					targetObjects = mapObjects.points;
+					break;
+				case DrawMode.Goal:
+					targetObjects = mapObjects.goals;
+					break;
 			}
-		}
-
-		//check points
-		for (let i = 0; i < mapObjects.points.length; i++) {
-
-			let pLong = mapObjects.points[i].pos[0];
-			let pLat = mapObjects.points[i].pos[1];
-
-			if(Math.hypot(long - pLong,lat - pLat) < degreesPerPixel * 15){
-				return {
-					array: mapObjects.points,
-					index: i
-				}
+			if (targetObjects === undefined){
+				continue;
 			}
-		}
-
-		//check destination(s?)
-		for (let i = 0; i < mapObjects.goals.length; i++) {
-
-			let pLong = mapObjects.goals[i].pos[0];
-			let pLat = mapObjects.goals[i].pos[1];
-
-			if(Math.hypot(long - pLong,lat - pLat) < degreesPerPixel * 15){
-				return {
-					array: mapObjects.goals,
-					index: i
-				}
-			}
-		}
-
-		//check line segments
-		distancePointToLineSegment
-		for (let i = 0; i < mapObjects.lines.length; i++) {
-
-			let p0 = mapObjects.lines[i].p0;
-			let p1 = mapObjects.lines[i].p1;
-
-			if (p1 != undefined){	
-				if(distancePointToLineSegment([long, lat], p0, p1) < degreesPerPixel * 7){
+			for (const objectdata of targetObjects){
+				const id = graphic.attributes.id;
+				if (id === objectdata.id){
 					return {
-						array: mapObjects.lines,
-						index: i
+						array: targetObjects,
+						id: id
 					}
 				}
 			}
 		}
-
-		return undefined;
 	}
 
 	function redrawMap(){
@@ -804,12 +806,39 @@ require([
 
 		// draw lines
 		if(mapObjects.lines.length > 0){
-			for (i = 0; i < mapObjects.lines.length; i++) {
-				let linedata = mapObjects.lines[i];
-				if (linedata.p1 != undefined){
-					let line = new Graphic(GraphicsLibrary.lines[linedata.type]);
+			for (const linedata of mapObjects.lines) {
+				if (linedata.p1 !== undefined){
+					const line = new Graphic(GraphicsLibrary.lines[linedata.type]);
 					line.geometry.paths = [linedata.p0, linedata.p1];
+					line.attributes = {id: linedata.id, type: linedata.type}
 					renderLayer.add(line);
+				}
+			}
+		}
+
+		// draw circles
+		if(mapObjects.circles.length > 0){
+			for (const circledata of mapObjects.circles) {
+				if (circledata.radius !== undefined){
+					const circle = new Graphic(circleFactory({
+						center: circledata.center,
+						radius: circledata.radius
+					}));
+					circle.attributes = {id: circledata.id, type: circledata.type}
+
+					const line = new Graphic(GraphicsLibrary.compassLine);
+					line.geometry.paths = [circledata.center, circledata.endpoint];
+					line.attributes = {id: circledata.id, type: circledata.type}
+
+					const length = getDistance(circledata.center, circledata.endpoint)		
+					const length_text = new Graphic(GraphicsLibrary.distanceLabel);
+					length_text.geometry.longitude = (circledata.center[0] + circledata.endpoint[0])/2;
+					length_text.geometry.latitude = (circledata.center[1] + circledata.endpoint[1])/2;
+					length_text.symbol.text = `${(length*140).toFixed(1)} NM`;
+
+					renderLayer.add(circle);
+					renderLayer.add(line);
+					renderLayer.add(length_text);
 				}
 			}
 		}
@@ -853,18 +882,19 @@ require([
 
 		//draw route dots
 		if(mapObjects.path.length > 0){
-			for (i = 0; i < mapObjects.path.length; i++) {
-				let point = new Graphic(GraphicsLibrary.points[mapObjects.path[i].colour]);
-				point.geometry.latitude = mapObjects.path[i].pos[1];
-				point.geometry.longitude = mapObjects.path[i].pos[0];
+			for (const pointdata of mapObjects.path) {
+				const point = new Graphic(GraphicsLibrary.points[pointdata.colour]);
+				point.geometry.latitude = pointdata.pos[1];
+				point.geometry.longitude = pointdata.pos[0];
+				point.attributes = {id: pointdata.id, type: pointdata.type}
 				renderLayer.add(point);
 
-				if(mapObjects.path[i].description != "")
+				if(pointdata.description != "")
 				{
-					let description_text = new Graphic(GraphicsLibrary.distanceLabel);
-					description_text.geometry.longitude = mapObjects.path[i].pos[0];
-					description_text.geometry.latitude = mapObjects.path[i].pos[1];
-					description_text.symbol.text = mapObjects.path[i].description;
+					const description_text = new Graphic(GraphicsLibrary.distanceLabel);
+					description_text.geometry.longitude =pointdata.pos[0];
+					description_text.geometry.latitude = pointdata.pos[1];
+					description_text.symbol.text = pointdata.description;
 					description_text.symbol.yoffset = 10;
 					renderLayer.add(description_text);
 				}
@@ -873,18 +903,19 @@ require([
 
 		//draw scatter dots
 		if(mapObjects.points.length > 0){
-			for (i = 0; i < mapObjects.points.length; i++) {
-				let point = new Graphic(GraphicsLibrary.points[mapObjects.points[i].colour]);
-				point.geometry.latitude = mapObjects.points[i].pos[1];
-				point.geometry.longitude = mapObjects.points[i].pos[0];
+			for (const pointdata of mapObjects.points) {
+				const point = new Graphic(GraphicsLibrary.points[pointdata.colour]);
+				point.geometry.latitude = pointdata.pos[1];
+				point.geometry.longitude = pointdata.pos[0];
+				point.attributes = {id: pointdata.id, type: pointdata.type}
 				renderLayer.add(point);
 
-				if(mapObjects.points[i].description != "")
+				if(pointdata.description !== "")
 				{
-					let description_text = new Graphic(GraphicsLibrary.distanceLabel);
-					description_text.geometry.longitude = mapObjects.points[i].pos[0];
-					description_text.geometry.latitude = mapObjects.points[i].pos[1];
-					description_text.symbol.text = mapObjects.points[i].description;
+					const description_text = new Graphic(GraphicsLibrary.distanceLabel);
+					description_text.geometry.longitude = pointdata.pos[0];
+					description_text.geometry.latitude = pointdata.pos[1];
+					description_text.symbol.text = pointdata.description;
 					description_text.symbol.yoffset = 10;
 					renderLayer.add(description_text);
 				}
@@ -893,10 +924,11 @@ require([
 
 		//draw destinations
 		if(mapObjects.goals.length > 0){
-			for (i = 0; i < mapObjects.goals.length; i++) {
-				let point = new Graphic(GraphicsLibrary.destinationPoint);
-				point.geometry.latitude = mapObjects.goals[i].pos[1];
-				point.geometry.longitude = mapObjects.goals[i].pos[0];
+			for (const pointdata of mapObjects.goals) {
+				const point = new Graphic(GraphicsLibrary.destinationPoint);
+				point.geometry.latitude = pointdata.pos[1];
+				point.geometry.longitude = pointdata.pos[0];
+				point.attributes = {id: pointdata.id, type: pointdata.type}
 				renderLayer.add(point);
 			}
 		}
@@ -1058,72 +1090,71 @@ require([
 
 	//Details menu
 	document.getElementById('details_description').onchange = function () {
-		if(menuPoint == undefined)
+		if(menuPoint === undefined)
 			return;
 
-		let val = document.getElementById("details_description").value;
-		menuPoint.array[menuPoint.index].description = val;
+		const val = document.getElementById("details_description").value;
+		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].description = val;
 	
 		redrawMap();
 	}
 
 	document.getElementById('details_lattitude').onchange = function () {
-		if(menuPoint == undefined)
+		if(menuPoint === undefined)
 			return;
 
-		let val = document.getElementById("details_lattitude").value;
-		menuPoint.array[menuPoint.index].pos[1] = val;
-
+		const val = document.getElementById("details_lattitude").value;
+		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].pos[1] = val;
 	
 		redrawMap();
 	}
 
 	document.getElementById('details_longitude').onchange = function () {
-		if(menuPoint == undefined)
+		if(menuPoint === undefined)
 			return;
 
-		let val = document.getElementById("details_longitude").value;
-		menuPoint.array[menuPoint.index].pos[0] = val;
+		const val = document.getElementById("details_longitude").value;
+		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].pos[0] = val;
 	
 		redrawMap();
 	}
 
 	document.getElementById('details_colour').onchange = function () {
-		if(menuPoint == undefined)
+		if(menuPoint === undefined)
 			return;
 
-		let val = document.getElementById("details_colour").value;
-		menuPoint.array[menuPoint.index].colour = val;
+		const val = document.getElementById("details_colour").value;
+		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].colour = val;
 	
 		redrawMap();
 	}
 
 	document.getElementById('details_day').onchange = function () {
-		if(menuPoint == undefined)
+		if(menuPoint === undefined)
 			return;
 
-		let val = document.getElementById("details_day").value;
-		menuPoint.array[menuPoint.index].day = val;
+		const val = document.getElementById("details_day").value;
+		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].day = val;
 	
 		redrawMap();
 	}
 
 	document.getElementById('details_time').onchange = function () {
-		if(menuPoint == undefined)
+		if(menuPoint === undefined)
 			return;
 
-		let val = document.getElementById("details_time").value;
-		menuPoint.array[menuPoint.index].time = val;
+		const val = document.getElementById("details_time").value;
+		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].time = val;
 	
 		redrawMap();
 	}
 
 	document.getElementById('details_winddir').onchange = function () {
-		if(menuPoint == undefined)
+		if(menuPoint === undefined)
 			return;
 
-		let val = document.getElementById("details_winddir").value;
-		menuPoint.array[menuPoint.index].winddir = val;
+		const val = document.getElementById("details_winddir").value;
+		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].winddir = val;
 	
 		redrawMap();
 	}
@@ -1257,11 +1288,11 @@ require([
 	}
 
 	function openDetails(result) {
-		let entry = result.array[result.index];
+		const entry = result.array[getIndexById(result.array, result.id)];
 
 		const screenPoint = view.toScreen({
 			x: entry.pos[0], // longitude
-			y:  entry.pos[1], // latitude
+			y: entry.pos[1], // latitude
 			spatialReference: view.spatialReference, // match the view's spatial reference
 		});
 	

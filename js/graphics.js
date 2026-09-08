@@ -202,6 +202,19 @@ class DarkThemeGraphics {
 		}
 	}
 
+	static compassLine = {
+		geometry: {
+			type: "polyline",
+			paths: [[0, 0]]
+		},
+		symbol: {
+			type: "simple-line",  // autocasts as SimpleLineSymbol()
+			color: [255, 255, 255, 0.4],
+			style: 'dash',
+			width: 1
+		}
+	}
+
 	static eraser = {
 		geometry: {
 			type: "point",
@@ -498,6 +511,19 @@ class LightThemeGraphics {
 		}
 	}
 
+	static compassLine = {
+		geometry: {
+			type: "polyline",
+			paths: [[0, 0]]
+		},
+		symbol: {
+			type: "simple-line",  // autocasts as SimpleLineSymbol()
+			color: [0, 0, 0, 0.7],
+			style: 'dash',
+			width: 1
+		}
+	};
+
 	static eraser = {
 		geometry: {
 			type: "point",
@@ -719,6 +745,10 @@ class GraphicsLibrary {
 			"orangedottedline": GraphicsLibrary.dottedOrangeLine
 		}
 	}
+
+	static get compassLine() {
+		return _currentThemeColor.compassLine;
+	};
 
 	static get eraser() {
 		return _currentThemeColor.eraser;
