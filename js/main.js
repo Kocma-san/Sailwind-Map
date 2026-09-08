@@ -545,7 +545,7 @@ require([
 				const length_text = new Graphic(GraphicsLibrary.distanceLabel);
 				length_text.geometry.longitude = (linedata.p0[0] + point.longitude)/2;
 				length_text.geometry.latitude = (linedata.p0[1] + point.latitude)/2;
-				length_text.symbol.text = `${(length*140).toFixed(1)} NM  ${bearing}°`;
+				length_text.symbol.text = `${(length*140).toFixed(1)} NM  ${bearing.toFixed(1)}°`;
 				
 				topTempLayer.add(length_text);
 
