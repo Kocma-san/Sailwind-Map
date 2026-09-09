@@ -363,7 +363,7 @@ require([
 			center: center,
 			radius: radius,
 			radiusUnit: "kilometers",
-			numberOfPoints: 160
+			numberOfPoints: 200
 		})
 		return {
 			geometry: circleGeometry,
