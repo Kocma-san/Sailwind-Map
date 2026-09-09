@@ -1395,6 +1395,7 @@ require([
 		document.getElementById("tool_line_black").src =  darkMode ? "assets/img/tools/line_white.svg" :  "assets/img/tools/line_black.svg";
 		document.getElementById("tool_line_gray").src =  darkMode ? "assets/img/tools/line_darkgray.svg" :  "assets/img/tools/line_gray.svg";
 		document.getElementById("tool_line_red").src =  darkMode ? "assets/img/tools/line_brightred.svg" :  "assets/img/tools/line_red.svg";
+		document.getElementById("tool_circle").src =  darkMode ? "assets/img/tools/pair_of_compasses_dark.svg" :  "assets/img/tools/pair_of_compasses.svg";
 		document.getElementById("tool_path").src =  darkMode ? "assets/img/tools/path_dark.svg" :  "assets/img/tools/path.svg";
 		document.getElementById("tool_path_nolines").src =  darkMode ? "assets/img/tools/path_nolines_dark.svg" :  "assets/img/tools/path_nolines.svg";
 		document.getElementById("tool_destination").src =  darkMode ? "assets/img/tools/destination_dark.svg" :  "assets/img/tools/destination.svg";
