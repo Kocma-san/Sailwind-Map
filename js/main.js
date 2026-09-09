@@ -60,9 +60,8 @@ require([
 	"esri/layers/GeoJSONLayer",
 	"esri/Graphic",
 	"esri/layers/GraphicsLayer",
-	"esri/geometry/Circle",
-	"esri/geometry/geometryEngine"
-], (ArcGISMap, MapView, GeoJSONLayer, Graphic, GraphicsLayer, Circle, geometryEngine) => {
+	"esri/geometry/Circle"
+], (ArcGISMap, MapView, GeoJSONLayer, Graphic, GraphicsLayer, Circle) => {
 
 	(async()=>{
 
@@ -463,7 +462,7 @@ require([
 		let newScale = view.scale * (event.deltaY < 0 ? 1 / customZoomFactor : customZoomFactor);
 		newScale = clamp(newScale, view.constraints.maxScale, view.constraints.minScale)
 
-		if (newScale != view.scale) {
+		if (newScale !== view.scale) {
 			const screenPoint = {
 				x: event.x,
 				y: event.y,
@@ -670,7 +669,7 @@ require([
 		else if(drawMode.includes("line")){
 			let unfinished = undefined;
 			for (let i = mapObjects.lines.length-1; i >= 0; i--) {
-				if(mapObjects.lines[i].p1 == undefined){
+				if(mapObjects.lines[i].p1 === undefined){
 					unfinished = mapObjects.lines[i];
 					break;
 				}
@@ -741,7 +740,7 @@ require([
 	});
 
 	view.on("pointer-up", (event) => {
-		if(mouseGrabMoving != undefined){
+		if(mouseGrabMoving !== undefined){
 			mouseGrabMoving = undefined;
 			document.getElementById("viewDiv").style.cursor = "crosshair";
 		}
@@ -1064,18 +1063,29 @@ require([
 	}
 
 	document.getElementById('map_file').onchange = () => {
-		const files = document.getElementById('map_file').files;
-		if (files.length <= 0) {
-		    return false;
-		} 
+    	const file = document.getElementById('map_file').files?.[0];		
+    	if (!file) {
+    	    return;
+    	}
+
 		const fr = new FileReader();
-		fr.onload = (e) => { 
-			mapObjects = prepareSaveData(JSON.parse(e.target.result));
-			localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
-			redrawMap();
-		}
-		  
-		fr.readAsText(files.item(0));
+		fr.onload = (e) => {
+			try {
+        	    const importedData = JSON.parse(e.target.result);
+        	    mapObjects = prepareSaveData(importedData);
+
+        	    localStorage.setItem(
+					"quicksave_data",
+					JSON.stringify(mapObjects)
+        	    );
+        	    redrawMap();
+        	} catch (err) {
+        	    console.error(err);
+        	} finally {
+				document.getElementById('map_file').value = '';
+			}
+		}; 
+		fr.readAsText(file);
 	}
 
 	//Details menu
@@ -1554,11 +1564,13 @@ function prepareSaveData(data) {
 
 	return data
 }
+
 function migrateSaveData(data) {
 	let version = data.version ?? 0;
 
 	if(version < CURRENT_SAVE_VERSION){
 		if(version === 0){
+			// “circles” array has been added. Each element in the other arrays now has “id” and “type” values
 			let nextId = 0;
     		const circles = (data.circles || []).map(circle => ({
     		    ...circle,
@@ -1593,7 +1605,7 @@ function migrateSaveData(data) {
 				type: DrawMode.Goal
     		}));
 
-			data = {			
+			data = {
 				...data,	
 				lines: lines,
 				circles: circles,
@@ -1608,6 +1620,7 @@ function migrateSaveData(data) {
 
 	return data;
 }
+
 function createDefaultSaveData() {
     return {
         version: CURRENT_SAVE_VERSION,
