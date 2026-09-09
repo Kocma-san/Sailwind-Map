@@ -19,13 +19,8 @@ var showDistances = false;
 var showSecrets = false;
 let dark_mode = false;
 
-var mapObjects = {
-	lines: [],
-	circles: [],
-	path: [],
-	points: [],
-	goals: []
-}
+const CURRENT_SAVE_VERSION = 1;
+var mapObjects = createDefaultSaveData();
 
 // save the zoom and position of the map
 let positionData={
@@ -35,18 +30,18 @@ let positionData={
 
 function setMode(event, newMode){
 
-	if(drawMode == newMode){
+	if(drawMode === newMode){
 		drawMode = DrawMode.None;
 	}else{
 		drawMode = newMode;
 	}
 
-	let buttons = document.getElementsByClassName("iconbutton");
+	const buttons = document.getElementsByClassName("iconbutton");
 	for (let i = 0; i < buttons.length; i++) {
 		buttons[i].style.backgroundColor = dark_mode ? "#2a242073": "#ffd8c273";
 	}
 
-	if(drawMode != DrawMode.None){
+	if(drawMode !== DrawMode.None){
 		event.target.style.backgroundColor = dark_mode ? "black" : "white";
 	}
 }
@@ -1040,13 +1035,7 @@ require([
 
 	//Info Menu
 	document.getElementById('clearcoords').onclick = () => {
-		mapObjects = {
-			lines: [],
-			circles: [],
-			path: [],
-			points: [],
-			goals: []
-		}
+		mapObjects = createDefaultSaveData();
 	
 		redrawMap();
 		localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
@@ -1081,7 +1070,7 @@ require([
 		} 
 		const fr = new FileReader();
 		fr.onload = (e) => { 
-			mapObjects = JSON.parse(e.target.result);
+			mapObjects = prepareSaveData(JSON.parse(e.target.result));
 			localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
 			redrawMap();
 		}
@@ -1284,7 +1273,13 @@ require([
 	}
 
 	if(Object.hasOwn(localStorage, "quicksave_data")) {
-		mapObjects = JSON.parse(localStorage.getItem("quicksave_data"));	
+		let data;
+		try {
+			data = JSON.parse(localStorage.getItem("quicksave_data"));	
+		} catch {
+			data = {}
+		}
+		mapObjects = prepareSaveData(data);
 		redrawMap();
 	}
 
@@ -1552,4 +1547,74 @@ function pathToData(){
 	outstring += "					]\n";
 
 	console.log(outstring);
+}
+
+function prepareSaveData(data) {
+	data = migrateSaveData(data);
+
+	return data
+}
+function migrateSaveData(data) {
+	let version = data.version ?? 0;
+
+	if(version < CURRENT_SAVE_VERSION){
+		if(version === 0){
+			let nextId = 0;
+    		const circles = (data.circles || []).map(circle => ({
+    		    ...circle,
+    		    id: nextId++,
+    		    type: DrawMode.Circle
+    		}));
+
+			nextId = 0;
+    		const lines = (data.lines || []).map(line => ({
+    		    ...line,
+    		    id: nextId++
+    		}));
+
+			nextId = 0;
+    		const paths = (data.path || []).map(path => ({
+    		    ...path,
+    		    id: nextId++,
+				type: DrawMode.Path
+    		}));
+
+			nextId = 0;
+			const points = (data.points || []).map(point => ({
+    		    ...point,
+    		    id: nextId++,
+				type: DrawMode.Point
+    		}));
+
+			nextId = 0;
+			const goals = (data.goals || []).map(point => ({
+    		    ...point,
+    		    id: nextId++,
+				type: DrawMode.Goal
+    		}));
+
+			data = {			
+				...data,	
+				lines: lines,
+				circles: circles,
+				path: paths,
+				points: points,
+				goals: goals,
+				version: 1
+			}
+			version = 1
+		}
+	}
+
+	return data;
+}
+function createDefaultSaveData() {
+    return {
+        version: CURRENT_SAVE_VERSION,
+		lines: [],
+		circles: [],
+		path: [],
+		points: [],
+		goals: []
+    };
 }
