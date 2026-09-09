@@ -513,6 +513,16 @@ require([
 	map.add(topTempLayer);
 
 
+	view.on('pointer-move', async (event) => {
+		if(drawMode === DrawMode.Erase){
+			const object = await findObjectAt(event);
+			view.container.classList.toggle(
+			    "cursor-eraser-active",
+			    object !== undefined
+			);
+		}
+	});
+
 	view.on('pointer-move', (event) => {
 
 		const point = view.toMap({ x: event.x, y: event.y });
@@ -747,10 +757,10 @@ require([
 	});
 
 	async function findObjectAt(event){
-		const response = await view.hitTest(event);
-		const results = response.results.filter((object) => {
-			return object.graphic.layer === renderLayer
-		})
+		const response = await view.hitTest(event, {
+			include: [renderLayer]
+		});
+		const results = response.results;
 
 		for (const result of results){
 			const graphic = result.graphic;
@@ -762,8 +772,9 @@ require([
 					targetObjects = mapObjects.lines;				
 					break;
 				case DrawMode.Circle:
-					// Some additional logic is needed here. Currently, the circle is deleted even if you click inside it, not just along its border.
+					// Some additional logic is needed here. Currently, the circle is erased even if you click inside it, not just along its border.
 					// Since we are using ArcGIS v4.21, we don't have any convenient ways to solve this problem (proximityOperator with testPolygonInterior added in v4.31) 
+					// upd: Hmm, maybe there is a way around (note about Polygone) -> https://developers.arcgis.com/javascript/latest/references/core/views/MapView/#hitTest
 					targetObjects = mapObjects.circles;
 					break;
 				case DrawMode.Path:
@@ -1388,7 +1399,10 @@ require([
 			buttons[i].classList.toggle("button-dark", darkMode);
 		}
 
-		document.body.style.color = darkMode ? "lightgray": "black";
+		document.body.classList.toggle(
+		    "dark-theme",
+		    darkMode
+		);
 		document.getElementById("compass_image").src =  darkMode ? "assets/img/downscaled_compass_dark.png" :  "assets/img/downscaled_compass.png";
 
 		//tools
@@ -1455,10 +1469,9 @@ require([
 				border-color: #00000096;
 				box-shadow: ${boxShadow};
 			}`, ruleIndex);
-		  }
+		}
 
 		toggleEsriZoomDarkMode(darkMode);
-
 
 		redrawMap();
 		redrawEdge();
