@@ -1290,6 +1290,8 @@ require([
 			data = {}
 		}
 		mapObjects = prepareSaveData(data);
+
+		localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
 		redrawMap();
 	}
 
