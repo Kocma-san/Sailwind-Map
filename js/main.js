@@ -1063,25 +1063,25 @@ require([
 	}
 
 	document.getElementById('map_file').onchange = () => {
-    	const file = document.getElementById('map_file').files?.[0];		
-    	if (!file) {
-    	    return;
-    	}
+		const file = document.getElementById('map_file').files?.[0];		
+		if (!file) {
+			return;
+		}
 
 		const fr = new FileReader();
 		fr.onload = (e) => {
 			try {
-        	    const importedData = JSON.parse(e.target.result);
-        	    mapObjects = prepareSaveData(importedData);
+				const importedData = JSON.parse(e.target.result);
+				mapObjects = prepareSaveData(importedData);
 
-        	    localStorage.setItem(
+				localStorage.setItem(
 					"quicksave_data",
 					JSON.stringify(mapObjects)
-        	    );
-        	    redrawMap();
-        	} catch (err) {
-        	    console.error(err);
-        	} finally {
+				);
+				redrawMap();
+			} catch (err) {
+				console.error(err);
+			} finally {
 				document.getElementById('map_file').value = '';
 			}
 		}; 
@@ -1572,38 +1572,38 @@ function migrateSaveData(data) {
 		if(version === 0){
 			// “circles” array has been added. Each element in the other arrays now has “id” and “type” values
 			let nextId = 0;
-    		const circles = (data.circles || []).map(circle => ({
-    		    ...circle,
-    		    id: nextId++,
-    		    type: DrawMode.Circle
-    		}));
+			const circles = (data.circles || []).map(circle => ({
+				...circle,
+				id: nextId++,
+				type: DrawMode.Circle
+			}));
 
 			nextId = 0;
-    		const lines = (data.lines || []).map(line => ({
-    		    ...line,
-    		    id: nextId++
-    		}));
+			const lines = (data.lines || []).map(line => ({
+				...line,
+				id: nextId++
+			}));
 
 			nextId = 0;
-    		const paths = (data.path || []).map(path => ({
-    		    ...path,
-    		    id: nextId++,
+			const paths = (data.path || []).map(path => ({
+				...path,
+				id: nextId++,
 				type: DrawMode.Path
-    		}));
+			}));
 
 			nextId = 0;
 			const points = (data.points || []).map(point => ({
-    		    ...point,
-    		    id: nextId++,
+				...point,
+				id: nextId++,
 				type: DrawMode.Point
-    		}));
+			}));
 
 			nextId = 0;
 			const goals = (data.goals || []).map(point => ({
-    		    ...point,
-    		    id: nextId++,
+				...point,
+				id: nextId++,
 				type: DrawMode.Goal
-    		}));
+			}));
 
 			data = {
 				...data,	
