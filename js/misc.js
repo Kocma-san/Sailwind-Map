@@ -96,3 +96,13 @@ function approximateDistanceToKilometers(distance) {
 function getIndexById(array, id) {
 	return array.findIndex(object => object.id === id)
 }
+
+function getNextFreeId(array) {
+	const usedId = new Set(array.map(item => item.id));
+
+	let id = 0;
+	while (usedId.has(id)) {
+		id++;
+	}
+	return id;
+}

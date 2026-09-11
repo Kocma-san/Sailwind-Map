@@ -622,7 +622,7 @@ require([
 
 				if(distancePointToLineSegment([long, lat], p0, p1) < degreesPerPixel * 7){
 					mapObjects.path.splice(i+1, 0, {
-						id: mapObjects.path.length,
+						id: getNextFreeId(mapObjects.path),
 						type: drawMode,
 						description: "",
 						pos: [long, lat],
@@ -638,7 +638,7 @@ require([
 
 			if(!inserted){
 				mapObjects.path.push({
-					id: mapObjects.path.length,
+					id: getNextFreeId(mapObjects.path),
 					type: drawMode,
 					description: "",
 					pos: [long, lat],
@@ -651,7 +651,7 @@ require([
 		}
 		else if(drawMode === DrawMode.Point){
 			mapObjects.points.push({
-				id: mapObjects.points.length,
+				id: getNextFreeId(mapObjects.points),
 				type: drawMode,
 				description: "Click to Rename",
 				pos: [long, lat],
@@ -663,7 +663,7 @@ require([
 		}
 		else if(drawMode === DrawMode.Goal){
 			mapObjects.goals = [{
-				id: mapObjects.goals.length,
+				id: getNextFreeId(mapObjects.goals),
 				type: drawMode,
 				pos: [long, lat]
 			}];
@@ -687,7 +687,7 @@ require([
 
 			if(unfinished === undefined){
 				mapObjects.lines.push({
-					id: mapObjects.lines.length,
+					id: getNextFreeId(mapObjects.lines),
 					type: drawMode,
 					p0: [long, lat],
 					p1: undefined
@@ -707,7 +707,7 @@ require([
 
 			if(unfinished === undefined){
 				mapObjects.circles.push({
-					id: mapObjects.circles.length,
+					id: getNextFreeId(mapObjects.circles),
 					type: drawMode,
 					center: [long, lat],
 					radius: undefined,
