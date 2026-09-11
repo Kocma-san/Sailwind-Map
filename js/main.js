@@ -520,6 +520,11 @@ require([
 			    "cursor-eraser-active",
 			    object !== undefined
 			);
+		} else {
+			view.container.classList.toggle(
+			    "cursor-eraser-active",
+			    false
+			);
 		}
 	});
 
