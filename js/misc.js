@@ -1,5 +1,5 @@
 //cursor indicator lines
-window.onmousemove = function (e) {
+window.onmousemove = (e) => {
 	document.getElementById("horizCursorline").style.top = e.clientY+"px";
 	document.getElementById("vertCursorline").style.left = e.clientX+"px";
 };
@@ -15,6 +15,13 @@ function getCompassStringFromDeg(deg){
 }
 
 // utils
+function getDistance(point1, point2) {
+	return Math.hypot(
+		point1[0] - point2[0],
+		point1[1] - point2[1],
+	);
+}
+
 function getDistanceFromLatLonInNm(lat1, lon1, lat2, lon2) {
 	//var R =  5765; // Radius of the earth in km
 	//var dLat = deg2rad(lat2-lat1);  // deg2rad below
@@ -80,3 +87,22 @@ function getBearing(startLat, startLng, destLat, destLng) {
 
 	return (degrees + 360) % 360;
 };
+
+// Approximate angular distance to kilometers. Using only to get radius for circles (silly arcgis)
+function approximateDistanceToKilometers(distance) {
+	return 111.3195 * distance;
+}
+
+function getIndexById(array, id) {
+	return array.findIndex(object => object.id === id)
+}
+
+function getNextFreeId(array) {
+	const usedId = new Set(array.map(item => item.id));
+
+	let id = 0;
+	while (usedId.has(id)) {
+		id++;
+	}
+	return id;
+}

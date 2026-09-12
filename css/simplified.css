@@ -15,10 +15,15 @@ body {
     font-family: 'Oregano-Regular';
     display: flex;
     overflow: hidden;
+    color: black;
 }
 
 h3{
     margin: 0;
+}
+
+body.dark-theme {
+    color: lightgray;
 }
 
 #viewDiv {
@@ -57,6 +62,13 @@ h3{
     background-color:#443E3A;
     box-shadow: 0.2vh 0.3vh 2vh black, 0 0 12.5vh #443E3A inset;
     pointer-events:none;
+}
+
+.cursor-eraser-active {
+    cursor: url(../assets/img/tools/eraser.svg) 6 22, auto !important;
+}
+body.dark-theme .cursor-eraser-active {
+    cursor: url(../assets/img/tools/eraser_dark.svg) 6 22, auto !important;
 }
 
 /* Zoom icons */
