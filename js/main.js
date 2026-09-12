@@ -588,7 +588,7 @@ require([
 		}
 
 		if(mouseGrabMoving !== undefined){
-			mouseGrabMoving.array[mouseGrabMoving.index].pos = [point.longitude, point.latitude];
+			mouseGrabMoving.array[getIndexById(mouseGrabMoving.array, mouseGrabMoving.id)].pos = [point.longitude, point.latitude];
 			redrawMap();
 
 			// update quicksave
@@ -739,20 +739,18 @@ require([
 		localStorage.setItem("positionData", JSON.stringify(positionData));
 	});
 
-	view.on("hold", (event) => {
+	view.on("hold", async (event) => {
 		if(drawMode === DrawMode.Erase){
 			return;
 		}
 
-		const lat = event.mapPoint.y;
-		const long = event.mapPoint.x;
-
-		const result = findObjectAt(long, lat);
-		if(result !== undefined && result.array !== mapObjects.lines){
+		const result = await findObjectAt(event);
+		if(result !== undefined && result.array !== mapObjects.lines && result.array !== mapObjects.circles){
 			mouseGrabMoving = result;
 			document.getElementById("viewDiv").style.cursor = "move";
 		}
 	});
+
 
 	view.on("pointer-up", (event) => {
 		if(mouseGrabMoving !== undefined){
@@ -1581,12 +1579,6 @@ function pathToData(){
 }
 
 function prepareSaveData(data) {
-	data = migrateSaveData(data);
-
-	return data
-}
-
-function migrateSaveData(data) {
 	let version = data.version ?? 0;
 
 	if(version < CURRENT_SAVE_VERSION){
