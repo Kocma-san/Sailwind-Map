@@ -1305,14 +1305,13 @@ require([
 		document.getElementById("form_position_details").style.left = screenPoint.x+"px";
 		document.getElementById("form_position_details").style.display = "block";
 	
-		document.getElementById("details_description").value = entry.description;
-		document.getElementById("details_longitude").value = entry.pos[0];
-		document.getElementById("details_latitude").value = entry.pos[1];
-		document.getElementById("details_colour").value = entry.colour;
-	
-		document.getElementById("details_day").value = entry.day;
-		document.getElementById("details_time").value = entry.time;
-		document.getElementById("details_winddir").value = entry.winddir;
+		detailsDescription.value = entry.description;
+		detailsLatitude.value = entry.pos[1];
+		detailsLongitude.value = entry.pos[0];
+		detailsColour.value = entry.colour;	
+		detailsDay.value = entry.day;
+		detailsTime.value = entry.time;
+		detailsWinddir.value = entry.winddir;
 	
 		menuPoint = result;	
 	}
