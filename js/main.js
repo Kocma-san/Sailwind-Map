@@ -592,7 +592,7 @@ require([
 			redrawMap();
 
 			// update quicksave
-			localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
+			updateSaveData();
 		}
 	});
 
@@ -618,12 +618,12 @@ require([
 
 			// do we insert the point between other two points?
 			let inserted = false;
-			let degreesPerPixel = view.extent.width/window.screen.width;
+			const degreesPerPixel = view.extent.width/window.screen.width;
 
 			for (let i = 0; i+1 < mapObjects.path.length; i++) {
 
-				let p0 = mapObjects.path[i].pos;
-				let p1 = mapObjects.path[i+1].pos;
+				const p0 = mapObjects.path[i].pos;
+				const p1 = mapObjects.path[i+1].pos;
 
 				if(distancePointToLineSegment([long, lat], p0, p1) < degreesPerPixel * 7){
 					mapObjects.path.splice(i+1, 0, {
@@ -727,7 +727,7 @@ require([
 		redrawMap();
 
 		// update quicksave
-		localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
+		updateSaveData();
 	});
 
 	view.on("drag", (event) => {
@@ -1051,7 +1051,7 @@ require([
 		mapObjects = createDefaultSaveData();
 	
 		redrawMap();
-		localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
+		updateSaveData();
 	}
 
 	document.getElementById('export_map').onclick = async () => {
@@ -1103,75 +1103,58 @@ require([
 	}
 
 	//Details menu
-	document.getElementById('details_description').onchange = () => {
-		if(menuPoint === undefined)
+	function updateMenuPoint(callback) {
+		if(!menuPoint)
 			return;
 
-		const val = document.getElementById("details_description").value;
-		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].description = val;
-	
+		const item = menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)];
+		if(!item)
+			return;
+
+		callback(item);
+		updateSaveData();
 		redrawMap();
 	}
 
-	document.getElementById('details_lattitude').onchange = () => {
-		if(menuPoint === undefined)
-			return;
+	const detailsDescription = document.getElementById('details_description');
+	const detailsLatitude = document.getElementById('details_latitude');
+	const detailsLongitude = document.getElementById('details_longitude');
+	const detailsColour = document.getElementById("details_colour")
+	const detailsDay = document.getElementById("details_day")
+	const detailsTime = document.getElementById("details_time")
+	const detailsWinddir = document.getElementById("details_winddir")
 
-		const val = document.getElementById("details_lattitude").value;
-		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].pos[1] = val;
-	
-		redrawMap();
-	}
+	detailsDescription.addEventListener('input', () => updateMenuPoint((item) => {
+		item.description = detailsDescription.value;
+	}))
 
-	document.getElementById('details_longitude').onchange = () => {
-		if(menuPoint === undefined)
-			return;
+	detailsLatitude.addEventListener('input', () => updateMenuPoint((item) => {
+		const v = parseFloat(detailsLatitude.value);
+		if(!Number.isNaN(v))
+			item.pos[1] = v;		
+	}))
 
-		const val = document.getElementById("details_longitude").value;
-		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].pos[0] = val;
-	
-		redrawMap();
-	}
+	detailsLongitude.addEventListener('input', () => updateMenuPoint((item) => {
+		const v = parseFloat(detailsLongitude.value);
+		if(!Number.isNaN(v))
+			item.pos[0] = v;	
+	}))
 
-	document.getElementById('details_colour').onchange = () => {
-		if(menuPoint === undefined)
-			return;
+	detailsColour.addEventListener('input', () => updateMenuPoint((item) => {
+		item.colour = detailsColour.value;
+	}))
 
-		const val = document.getElementById("details_colour").value;
-		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].colour = val;
-	
-		redrawMap();
-	}
+	detailsDay.addEventListener('input', () => updateMenuPoint((item) => {
+		item.day = detailsDay.value;
+	}))
 
-	document.getElementById('details_day').onchange = () => {
-		if(menuPoint === undefined)
-			return;
+	detailsTime.addEventListener('input', () => updateMenuPoint((item) => {
+		item.day = detailsTime.value;
+	}))
 
-		const val = document.getElementById("details_day").value;
-		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].day = val;
-	
-		redrawMap();
-	}
-
-	document.getElementById('details_time').onchange = () => {
-		if(menuPoint === undefined)
-			return;
-
-		const val = document.getElementById("details_time").value;
-		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].time = val;
-	
-		redrawMap();
-	}
-
-	document.getElementById('details_winddir').onchange = () => {
-		if(menuPoint === undefined)
-			return;
-
-		const val = document.getElementById("details_winddir").value;
-		menuPoint.array[getIndexById(menuPoint.array, menuPoint.id)].winddir = val;
-	
-		redrawMap();
-	}
+	detailsWinddir.addEventListener('input', () => updateMenuPoint((item) => {
+		item.winddir = detailsWinddir.value;
+	}))
 
 	// dynamic degree number renderer
 	view.watch('extent', (newextent, oldextent) => {
@@ -1305,7 +1288,7 @@ require([
 		}
 		mapObjects = prepareSaveData(data);
 
-		localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
+		updateSaveData();
 		redrawMap();
 	}
 
@@ -1324,7 +1307,7 @@ require([
 	
 		document.getElementById("details_description").value = entry.description;
 		document.getElementById("details_longitude").value = entry.pos[0];
-		document.getElementById("details_lattitude").value = entry.pos[1];
+		document.getElementById("details_latitude").value = entry.pos[1];
 		document.getElementById("details_colour").value = entry.colour;
 	
 		document.getElementById("details_day").value = entry.day;
@@ -1576,6 +1559,10 @@ function pathToData(){
 	outstring += "					]\n";
 
 	console.log(outstring);
+}
+
+function updateSaveData(){
+	localStorage.setItem("quicksave_data", JSON.stringify(mapObjects));
 }
 
 function prepareSaveData(data) {
