@@ -1156,6 +1156,35 @@ require([
 		item.winddir = detailsWinddir.value;
 	}))
 
+	function openDetails(result) {
+		const entry = result.array[getIndexById(result.array, result.id)];
+
+		const screenPoint = view.toScreen({
+			x: entry.pos[0], // longitude
+			y: entry.pos[1], // latitude
+			spatialReference: view.spatialReference, // match the view's spatial reference
+		});
+	
+		document.getElementById("form_position_details").style.top = screenPoint.y+"px";
+		document.getElementById("form_position_details").style.left = screenPoint.x+"px";
+		document.getElementById("form_position_details").style.display = "block";
+	
+		detailsDescription.value = entry.description;
+		detailsLatitude.value = entry.pos[1];
+		detailsLongitude.value = entry.pos[0];
+		detailsColour.value = entry.colour;	
+		detailsDay.value = entry.day;
+		detailsTime.value = entry.time;
+		detailsWinddir.value = entry.winddir;
+	
+		menuPoint = result;	
+	}
+	
+	function closeDetails() {
+		document.getElementById("form_position_details").style.display = "none";
+		menuPoint = undefined;
+	}
+
 	// dynamic degree number renderer
 	view.watch('extent', (newextent, oldextent) => {
 		const xmin = view.extent.xmin;
@@ -1290,35 +1319,6 @@ require([
 
 		updateSaveData();
 		redrawMap();
-	}
-
-	function openDetails(result) {
-		const entry = result.array[getIndexById(result.array, result.id)];
-
-		const screenPoint = view.toScreen({
-			x: entry.pos[0], // longitude
-			y: entry.pos[1], // latitude
-			spatialReference: view.spatialReference, // match the view's spatial reference
-		});
-	
-		document.getElementById("form_position_details").style.top = screenPoint.y+"px";
-		document.getElementById("form_position_details").style.left = screenPoint.x+"px";
-		document.getElementById("form_position_details").style.display = "block";
-	
-		detailsDescription.value = entry.description;
-		detailsLatitude.value = entry.pos[1];
-		detailsLongitude.value = entry.pos[0];
-		detailsColour.value = entry.colour;	
-		detailsDay.value = entry.day;
-		detailsTime.value = entry.time;
-		detailsWinddir.value = entry.winddir;
-	
-		menuPoint = result;	
-	}
-	
-	function closeDetails() {
-		document.getElementById("form_position_details").style.display = "none";
-		menuPoint = undefined;
 	}
 
 	function changeTheme(darkMode){
